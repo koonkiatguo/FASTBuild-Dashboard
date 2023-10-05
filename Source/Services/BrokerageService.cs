@@ -1,6 +1,6 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Timers;
 
 namespace FastBuild.Dashboard.Services
@@ -77,9 +77,26 @@ namespace FastBuild.Dashboard.Services
 					Array.Sort(directories);
 					string workerPoolDirectory = directories[directories.Length - 1];
 
-					this.WorkerNames = Directory.GetFiles(workerPoolDirectory)
-						.Select(Path.GetFileName)
-						.ToArray();
+					var tempList = new List<string>();
+					var workers = Directory.GetFiles(workerPoolDirectory);
+
+					foreach (var workerFile in workers)
+					{
+						var lines = System.IO.File.ReadAllLines(workerFile);
+						foreach (var line in lines)
+						{
+							if (line.StartsWith("User"))
+							{
+								var filename = Path.GetFileName(workerFile);
+								var user = line.Replace("User:", string.Empty).Trim();
+								var name = $"{user} ({filename})";
+								tempList.Add(name);
+								break;
+							}
+						}
+					}
+
+					this.WorkerNames = tempList.ToArray();
 				}
 				catch (IOException)
 				{
