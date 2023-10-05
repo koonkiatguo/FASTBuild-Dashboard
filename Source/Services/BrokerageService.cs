@@ -7,7 +7,7 @@ namespace FastBuild.Dashboard.Services
 {
 	internal class BrokerageService : IBrokerageService
 	{
-		private const string WorkerPoolRelativePath = @"main\16";
+		private const string WorkerPoolSearchPattern = "*.windows";
 
 		private string[] _workerNames;
 
@@ -67,7 +67,17 @@ namespace FastBuild.Dashboard.Services
 
 				try
 				{
-					this.WorkerNames = Directory.GetFiles(Path.Combine(brokeragePath, WorkerPoolRelativePath))
+					var directories = Directory.GetDirectories(Path.Combine(brokeragePath, "main"), WorkerPoolSearchPattern);
+
+					if (directories.Length == 0)
+					{
+						return;
+					}
+
+					Array.Sort(directories);
+					string workerPoolDirectory = directories[directories.Length - 1];
+
+					this.WorkerNames = Directory.GetFiles(workerPoolDirectory)
 						.Select(Path.GetFileName)
 						.ToArray();
 				}
